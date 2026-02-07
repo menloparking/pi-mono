@@ -67,12 +67,21 @@ function getUrls(domain: string): {
  * Parse the proxy-ep from a Copilot token and convert to API base URL.
  * Token format: tid=...;exp=...;proxy-ep=proxy.individual.githubcopilot.com;...
  * Returns API URL like https://api.individual.githubcopilot.com
+ * 
+ * Special case: Business accounts have proxy-ep=proxy.business.githubcopilot.com
+ * but should use api.githubcopilot.com (not api.business.githubcopilot.com)
  */
 function getBaseUrlFromToken(token: string): string | null {
 	const match = token.match(/proxy-ep=([^;]+)/);
 	if (!match) return null;
 	const proxyHost = match[1];
-	// Convert proxy.xxx to api.xxx
+	
+	// Special case for Business accounts: proxy.business.githubcopilot.com -> api.githubcopilot.com
+	if (proxyHost === "proxy.business.githubcopilot.com") {
+		return "https://api.githubcopilot.com";
+	}
+	
+	// Convert proxy.xxx to api.xxx for other cases
 	const apiHost = proxyHost.replace(/^proxy\./, "api.");
 	return `https://${apiHost}`;
 }
